@@ -35,7 +35,7 @@ class qtype_vimipad_test_helper extends question_test_helper {
      * @return string[]
      */
     public function get_test_questions() {
-        return ['stub'];
+        return ['stub', 'structural', 'reference'];
     }
 
     /**
@@ -56,6 +56,40 @@ class qtype_vimipad_test_helper extends question_test_helper {
         $q->referencemap = null;
         $q->minnodes = 0;
         $q->minrelations = 0;
+        return $q;
+    }
+
+    /**
+     * Make a ViMi Pad question graded against structural minimums (2 nodes, 1 relation).
+     *
+     * @return qtype_vimipad_question
+     */
+    public function make_vimipad_question_structural() {
+        $q = $this->make_vimipad_question_stub();
+        $q->name = 'ViMi Pad structural';
+        $q->minnodes = 2;
+        $q->minrelations = 1;
+        return $q;
+    }
+
+    /**
+     * Make a ViMi Pad question graded against a reference map.
+     *
+     * @return qtype_vimipad_question
+     */
+    public function make_vimipad_question_reference() {
+        $q = $this->make_vimipad_question_stub();
+        $q->name = 'ViMi Pad reference';
+        $q->referencemap = json_encode([
+            'profile' => 'conceptmap',
+            'nodes' => [
+                ['stableid' => 'a', 'label' => 'Water'],
+                ['stableid' => 'b', 'label' => 'Ice'],
+            ],
+            'relations' => [
+                ['sourceid' => 'a', 'targetid' => 'b', 'label' => 'freezes to'],
+            ],
+        ]);
         return $q;
     }
 

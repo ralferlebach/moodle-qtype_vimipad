@@ -91,8 +91,9 @@ class qtype_vimipad_renderer extends qtype_renderer {
         }
 
         $this->preload_editor_strings();
+        $formconfig = json_encode(\mod_vimipad\profile\profiles::form_config($profile));
         $this->page->requires->js_call_amd('qtype_vimipad/attempt', 'init', [
-            $containerid, $inputid, $profile, $readonly,
+            $containerid, $inputid, $profile, $readonly, $formconfig,
         ]);
 
         return $out;

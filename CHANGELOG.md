@@ -4,6 +4,25 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.1.5 - 2026-08-10
+
+### Fixed
+- The embedded editor now receives the profile form config (via the new
+  mod_vimipad 0.9.4 embed), so nodes and relations can actually be created and
+  the arrange action no longer pushes new nodes off the canvas.
+- The learner journal and the graphic export are hidden in the embedded editor
+  (mod_vimipad embedded mode). The map is auto-captured on every edit; there is
+  no separate submit/snapshot step.
+- Dependency raised to mod_vimipad 2026080804 (0.9.4).
+
+## 0.1.4 - 2026-08-10
+
+### Added
+- Question-engine walkthrough tests (deferred feedback): structural full/partial,
+  reference full/partial and the empty-response (gaveup) path, driving a whole
+  attempt lifecycle through the engine. Test helper gains 'structural' and
+  'reference' question variants.
+
 ## 0.1.3 - 2026-08-10
 
 ### Changed

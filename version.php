@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'qtype_vimipad';
-$plugin->version      = 2026081003;
+$plugin->version      = 2026081005;
 $plugin->requires     = 2024100700;   // Moodle 4.5.0 — hard minimum, mirrors mod_vimipad.
 $plugin->supported    = [405, 502];   // Tested on Moodle 4.5–5.2, like the activity it depends on.
 $plugin->maturity     = MATURITY_ALPHA;
-$plugin->release      = '0.1.3';
+$plugin->release      = '0.1.5';
 
 // This question type is an embedding of the ViMi Pad editor. It reuses the
 // public API (\mod_vimipad\api\*, \mod_vimipad\profile\*) and the embeddable
@@ -37,5 +37,5 @@ $plugin->release      = '0.1.3';
 // question engine stores the frozen map itself as the attempt response. The
 // dependency is therefore declared and pinned to the 0.9.0 API baseline.
 $plugin->dependencies = [
-    'mod_vimipad' => 2026080802,
+    'mod_vimipad' => 2026080804,
 ];
