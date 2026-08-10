@@ -103,17 +103,60 @@ class qtype_vimipad extends question_type {
      * @return object|null
      */
     public function save_question_options($formdata) {
+        global $DB;
         if (empty($formdata->profile)) {
             $formdata->profile = 'conceptmap';
         }
         if (!isset($formdata->allowedshapes)) {
             $formdata->allowedshapes = '';
         }
-        if (!isset($formdata->referencemap)) {
-            $formdata->referencemap = '';
+        // Preserve any stored reference map so an edit without a new upload keeps it.
+        $existing = '';
+        if (!empty($formdata->id)) {
+            $existing = (string)$DB->get_field(
+                'qtype_vimipad_options',
+                'referencemap',
+                ['questionid' => $formdata->id]
+            );
+        }
+        $formdata->referencemap = $existing;
+        // A freshly uploaded ViMi Pad JSON export replaces the stored reference map.
+        if (!empty($formdata->referencemapfile)) {
+            $uploaded = self::reference_from_draft((int)$formdata->referencemapfile);
+            if ($uploaded !== null && trim($uploaded) !== '') {
+                $formdata->referencemap = $uploaded;
+            }
         }
         $formdata->minnodes = max(0, (int)($formdata->minnodes ?? 0));
         $formdata->minrelations = max(0, (int)($formdata->minrelations ?? 0));
         return parent::save_question_options($formdata);
+    }
+
+    /**
+     * Read the content of a JSON file uploaded via the reference-map filepicker.
+     *
+     * @param int $draftitemid The draft area item id produced by the filepicker.
+     * @return string|null The uploaded file content, or null when nothing was uploaded.
+     */
+    public static function reference_from_draft(int $draftitemid): ?string {
+        global $USER;
+        if (empty($draftitemid)) {
+            return null;
+        }
+        $usercontext = context_user::instance($USER->id);
+        $fs = get_file_storage();
+        $files = $fs->get_area_files(
+            $usercontext->id,
+            'user',
+            'draft',
+            $draftitemid,
+            'id DESC',
+            false
+        );
+        $file = reset($files);
+        if (!$file) {
+            return null;
+        }
+        return $file->get_content();
     }
 }

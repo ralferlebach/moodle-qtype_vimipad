@@ -72,7 +72,6 @@ class qtype_vimipad_test_helper extends question_test_helper {
         $form->generalfeedback = ['text' => '', 'format' => FORMAT_HTML];
         $form->profile = 'conceptmap';
         $form->allowedshapes = '';
-        $form->referencemap = '';
         $form->minnodes = 0;
         $form->minrelations = 0;
         return $form;

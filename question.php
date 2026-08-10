@@ -125,10 +125,10 @@ class qtype_vimipad_question extends question_graded_automatically {
         if (!isset($response['answer'])) {
             return null;
         }
-        $map = \qtype_vimipad\local\scorer::normalise_map((string)$response['answer']);
+        $counts = \qtype_vimipad\local\scorer::counts((string)$response['answer']);
         return get_string('responsesummary', 'qtype_vimipad', (object)[
-            'nodes' => count($map['nodes']),
-            'relations' => count($map['relations']),
+            'nodes' => $counts['nodes'],
+            'relations' => $counts['relations'],
         ]);
     }
 

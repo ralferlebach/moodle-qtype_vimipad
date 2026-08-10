@@ -60,13 +60,13 @@ class qtype_vimipad_edit_form extends question_edit_form {
         $mform->addElement('header', 'gradingheader', get_string('grading', 'qtype_vimipad'));
 
         $mform->addElement(
-            'textarea',
-            'referencemap',
+            'filepicker',
+            'referencemapfile',
             get_string('referencemap', 'qtype_vimipad'),
-            ['rows' => 6, 'cols' => 60, 'spellcheck' => 'false']
+            null,
+            ['accepted_types' => ['.json'], 'maxfiles' => 1]
         );
-        $mform->setType('referencemap', PARAM_RAW);
-        $mform->addHelpButton('referencemap', 'referencemap', 'qtype_vimipad');
+        $mform->addHelpButton('referencemapfile', 'referencemap', 'qtype_vimipad');
 
         $mform->addElement('text', 'minnodes', get_string('minnodes', 'qtype_vimipad'), ['size' => 6]);
         $mform->setType('minnodes', PARAM_INT);
@@ -102,6 +102,24 @@ class qtype_vimipad_edit_form extends question_edit_form {
             $options['conceptmap'] = 'conceptmap';
         }
         return $options;
+    }
+
+    /**
+     * Reject an uploaded reference map that is not valid JSON.
+     *
+     * @param array $fromform Submitted form data.
+     * @param array $files Submitted files.
+     * @return array Validation errors keyed by element name.
+     */
+    public function validation($fromform, $files) {
+        $errors = parent::validation($fromform, $files);
+        if (!empty($fromform['referencemapfile'])) {
+            $content = \qtype_vimipad::reference_from_draft((int)$fromform['referencemapfile']);
+            if ($content !== null && trim($content) !== '' && json_decode($content) === null) {
+                $errors['referencemapfile'] = get_string('referencemapinvalid', 'qtype_vimipad');
+            }
+        }
+        return $errors;
     }
 
     /**
