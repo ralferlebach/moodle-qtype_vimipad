@@ -4,6 +4,16 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.1.3 - 2026-08-10
+
+### Changed
+- The attempt response area now embeds the interactive ViMi Pad editor
+  (mod_vimipad/editor_lazy mountValue) instead of a plain-text field. The map is
+  a hidden value mirrored on every edit; submitted attempts render read-only.
+  Editor language strings are preloaded from mod_vimipad, not duplicated here.
+- Dependency raised to mod_vimipad 2026080802 (0.9.2), which provides the
+  value-backed editor embed.
+
 ## 0.1.2 - 2026-08-10
 
 ### Changed

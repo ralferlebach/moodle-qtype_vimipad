@@ -25,15 +25,15 @@
 /**
  * Generates the output for ViMi Pad questions.
  *
- * Stub behaviour: the response area is a plain-text field carrying the
- * serialised map so that attempts can already be submitted and manually graded.
- * The interactive ViMi Pad editor embed — mounting mod_vimipad/editor_lazy with
- * a ServiceTransport bound to the question attempt — replaces this field in a
- * follow-up step.
+ * The response area embeds the interactive ViMi Pad editor from mod_vimipad. The
+ * whole map is a single self-contained value: a hidden input carries the
+ * serialised map, and the editor (mounted through mod_vimipad/editor_lazy
+ * mountValue) mirrors every edit back into it, so the map is submitted with the
+ * quiz form and graded automatically.
  */
 class qtype_vimipad_renderer extends qtype_renderer {
     /**
-     * Render the question text and the (stub) response area.
+     * Render the question text and the editor response area.
      *
      * @param question_attempt $qa The question attempt to display.
      * @param question_display_options $options Controls what may be shown.
@@ -46,43 +46,43 @@ class qtype_vimipad_renderer extends qtype_renderer {
         $out = html_writer::tag('div', $questiontext, ['class' => 'qtext']);
 
         $inputname = $qa->get_qt_field_name('answer');
+        $inputid = $inputname . '_value';
+        $containerid = $inputname . '_editor';
         $current = $qa->get_last_qt_var('answer', '');
 
-        if ($options->readonly) {
-            $summary = $question->summarise_response(['answer' => $current]);
-            $out .= html_writer::tag(
-                'div',
-                s((string)$summary),
-                ['class' => 'qtype_vimipad_response readonly']
-            );
-            return $out;
-        }
+        $profile = isset($question->profile) ? (string) $question->profile : 'conceptmap';
+        $readonly = !empty($options->readonly);
 
-        $label = html_writer::tag(
-            'label',
-            get_string('answer', 'qtype_vimipad'),
-            ['for' => $inputname, 'class' => 'sr-only']
-        );
-        $textarea = html_writer::tag('textarea', s((string)$current), [
-            'id' => $inputname,
-            'name' => $inputname,
-            'rows' => 6,
-            'class' => 'form-control qtype_vimipad_answer',
-            'spellcheck' => 'false',
+        // The hidden value field carries the serialised map. It only submits when
+        // the attempt is editable; a read-only display still seeds the editor.
+        $inputattrs = [
+            'type' => 'hidden',
+            'id' => $inputid,
+            'value' => (string) $current,
+        ];
+        if (!$readonly) {
+            $inputattrs['name'] = $inputname;
+        }
+        $hidden = html_writer::empty_tag('input', $inputattrs);
+
+        $container = html_writer::tag('div', '', [
+            'id' => $containerid,
+            'class' => 'qtype_vimipad_editor',
+            'style' => 'min-height:480px;',
         ]);
-        $hint = html_writer::tag(
-            'div',
-            get_string('stubhint', 'qtype_vimipad'),
-            ['class' => 'qtype_vimipad_stubhint text-muted']
+
+        $noscript = html_writer::tag(
+            'noscript',
+            html_writer::tag('div', get_string('noscript', 'qtype_vimipad'), ['class' => 'text-muted'])
         );
 
         $out .= html_writer::tag(
             'div',
-            $label . $textarea . $hint,
+            $hidden . $container . $noscript,
             ['class' => 'qtype_vimipad_response ablock']
         );
 
-        if ($qa->get_state() == question_state::$invalid) {
+        if (!$readonly && $qa->get_state() == question_state::$invalid) {
             $out .= html_writer::nonempty_tag(
                 'div',
                 $question->get_validation_error(['answer' => $current]),
@@ -90,11 +90,35 @@ class qtype_vimipad_renderer extends qtype_renderer {
             );
         }
 
+        $this->preload_editor_strings();
+        $this->page->requires->js_call_amd('qtype_vimipad/attempt', 'init', [
+            $containerid, $inputid, $profile, $readonly,
+        ]);
+
         return $out;
     }
 
     /**
-     * Manually graded questions show no automatic specific feedback.
+     * Preload the mod_vimipad editor language strings so the embedded editor
+     * resolves them, without hard-coding the key list in this plugin.
+     *
+     * @return void
+     */
+    protected function preload_editor_strings() {
+        $strings = get_string_manager()->load_component_strings('mod_vimipad', current_language());
+        $keys = [];
+        foreach (array_keys($strings) as $key) {
+            if (strpos($key, 'editor:') === 0 || strpos($key, 'constraint:') === 0) {
+                $keys[] = $key;
+            }
+        }
+        if ($keys) {
+            $this->page->requires->strings_for_js($keys, 'mod_vimipad');
+        }
+    }
+
+    /**
+     * ViMi Pad questions show no automatic specific feedback in the stub.
      *
      * @param question_attempt $qa The question attempt to display.
      * @return string HTML fragment.

@@ -33,6 +33,7 @@ $string['minnodes'] = 'Minimum nodes';
 $string['minnodes_help'] = 'Used only when no reference map is set. The learner earns half of the mark once their map contains at least this many nodes. Zero means this half is always awarded.';
 $string['minrelations'] = 'Minimum relations';
 $string['minrelations_help'] = 'Used only when no reference map is set. The learner earns half of the mark once their map contains at least this many relations. Zero means this half is always awarded.';
+$string['noscript'] = 'This question needs JavaScript enabled to build the map.';
 $string['pleasedrawmap'] = 'Please build your map before submitting.';
 $string['pluginname'] = 'ViMi Pad';
 $string['pluginname_help'] = 'A ViMi Pad question asks the learner to build a visual knowledge map (concept map, mind map, tree and more) constrained to a chosen diagram profile. The submitted map is graded automatically against the author\'s reference map, or against minimum structural requirements when no reference is set.';

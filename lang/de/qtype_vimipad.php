@@ -33,6 +33,7 @@ $string['minnodes'] = 'Mindestanzahl Knoten';
 $string['minnodes_help'] = 'Wird nur verwendet, wenn keine Musterlösung hinterlegt ist. Die Lernenden erhalten die Hälfte der Punkte, sobald ihre Map mindestens so viele Knoten enthaelt. Null bedeutet, dass diese Hälfte immer vergeben wird.';
 $string['minrelations'] = 'Mindestanzahl Relationen';
 $string['minrelations_help'] = 'Wird nur verwendet, wenn keine Musterlösung hinterlegt ist. Die Lernenden erhalten die Hälfte der Punkte, sobald ihre Map mindestens so viele Relationen enthaelt. Null bedeutet, dass diese Hälfte immer vergeben wird.';
+$string['noscript'] = 'Diese Frage benötigt aktiviertes JavaScript, um die Map zu erstellen.';
 $string['pleasedrawmap'] = 'Bitte erstelle deine Map, bevor du sie abgibst.';
 $string['pluginname'] = 'ViMi Pad';
 $string['pluginname_help'] = 'Eine ViMi-Pad-Frage fordert die Lernenden auf, eine visuelle Wissensmap (Concept Map, Mindmap, Baum und mehr) innerhalb eines gewählten Diagrammprofils zu erstellen. Die abgegebene Map wird automatisch gegen die Musterlösung der Autorin bzw. des Autors bewertet oder, wenn keine hinterlegt ist, gegen strukturelle Mindestanforderungen.';
