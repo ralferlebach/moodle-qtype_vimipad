@@ -4,6 +4,13 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.1.6 - 2026-08-10
+
+### Added
+- Behat scenarios (tests/behat/edit.feature): a generated ViMi Pad question
+  appears in the course question bank, and a teacher can create one through the
+  question form. Fills the previously empty behat CI job.
+
 ## 0.1.5 - 2026-08-10
 
 ### Fixed

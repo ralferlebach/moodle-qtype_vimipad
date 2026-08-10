@@ -2,5 +2,6 @@
 <ruleset name="qtype_vimipad">
     <description>PHPCS configuration for qtype_vimipad.</description>
     <rule ref="moodle"/>
+    <exclude-pattern>*/tools/*</exclude-pattern>
     <exclude-pattern>*/vendor/*</exclude-pattern>
 </ruleset>
