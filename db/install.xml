@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="question/type/vimipad/db" VERSION="20260810" COMMENT="ViMi Pad question type - per-question options."
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="qtype_vimipad_options" COMMENT="Per-question configuration for ViMi Pad questions.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key referencing question.id."/>
+        <FIELD NAME="profile" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="conceptmap" SEQUENCE="false" COMMENT="The mod_vimipad diagram profile key this question is constrained to."/>
+        <FIELD NAME="allowedshapes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Optional comma-separated list of allowed node shapes; empty means the profile default."/>
+        <FIELD NAME="referencemap" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Optional author reference map (serialised JSON) used for automatic grading."/>
+        <FIELD NAME="minnodes" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Minimum node count for structural grading when no reference map is set."/>
+        <FIELD NAME="minrelations" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Minimum relation count for structural grading when no reference map is set."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="questionid" TYPE="foreign-unique" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
