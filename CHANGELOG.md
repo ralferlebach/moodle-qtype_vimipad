@@ -4,6 +4,16 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.2 - 2026-08-12
+
+### Fixed
+- The load seed pointed one directory too high when including config.php, so it
+  could never bootstrap Moodle from question/type/vimipad/tests/load.
+- The load targets in the makefile carried doubled line-continuation backslashes,
+  which made the shell fail with "unexpected end of file".
+- `make load-seed` now fails when the seed script fails, instead of reporting
+  success and writing an empty .load-env.
+
 ## 0.2.1 - 2026-08-12
 
 ### Added
