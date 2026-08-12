@@ -4,6 +4,13 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.3 - 2026-08-12
+
+### Changed
+- Added phpmd.xml, a curated PHPMD ruleset; the plugin reports zero findings
+  against it. Boolean web-service parameters and the vimipadform accessor naming
+  are excluded with their reasons, since both are prescribed by published APIs.
+
 ## 0.2.2 - 2026-08-12
 
 ### Fixed
