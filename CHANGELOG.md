@@ -4,6 +4,14 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.1 - 2026-08-12
+
+### Added
+- Load-test harness (tests/load): seed, JMeter plan and k6 script, plus a README.
+  This plugin exposes no web service, so the runs are session-based: they log in
+  (handling Moodle one-time logintoken) and request the pages a learner actually
+  meets. Not distributed (export-ignore), downloads and results gitignored.
+
 ## 0.2.0 - 2026-08-12
 
 First beta. Maturity raised from ALPHA to BETA.
