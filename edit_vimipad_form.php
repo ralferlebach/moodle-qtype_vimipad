@@ -115,8 +115,21 @@ class qtype_vimipad_edit_form extends question_edit_form {
         $errors = parent::validation($fromform, $files);
         if (!empty($fromform['referencemapfile'])) {
             $content = \qtype_vimipad::reference_from_draft((int)$fromform['referencemapfile']);
-            if ($content !== null && trim($content) !== '' && json_decode($content) === null) {
-                $errors['referencemapfile'] = get_string('referencemapinvalid', 'qtype_vimipad');
+            if ($content !== null && trim($content) !== '') {
+                // The reference is scored against learner responses, so it must
+                // satisfy the same public map policy: a file that merely parses as
+                // JSON is not necessarily a ViMi Pad map.
+                $shapes = [];
+                if (!empty($fromform['allowedshapes'])) {
+                    $shapes = array_values(array_filter(
+                        array_map('trim', explode(',', (string)$fromform['allowedshapes'])),
+                        fn($shape) => $shape !== ''
+                    ));
+                }
+                $profile = !empty($fromform['profile']) ? (string)$fromform['profile'] : null;
+                if (!\mod_vimipad\api\value::is_valid(trim($content), $profile, $shapes)) {
+                    $errors['referencemapfile'] = get_string('referencemapinvalid', 'qtype_vimipad');
+                }
             }
         }
         return $errors;

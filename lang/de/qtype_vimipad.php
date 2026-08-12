@@ -28,6 +28,7 @@ $string['allowedshapes'] = 'Erlaubte Knotenformen';
 $string['allowedshapes_help'] = 'Eine optionale, kommagetrennte Liste von Knotenformen, die die Lernenden verwenden dürfen. Leer lassen, um alle vom gewählten Diagrammprofil erlaubten Formen zuzulassen.';
 $string['answer'] = 'Deine Map';
 $string['grading'] = 'Automatische Bewertung';
+$string['invalidmap'] = 'Die eingereichte Map ist für diese Frage keine gültige ViMi-Pad-Map.';
 $string['mapsettings'] = 'Map-Einstellungen';
 $string['minnodes'] = 'Mindestanzahl Knoten';
 $string['minnodes_help'] = 'Wird nur verwendet, wenn keine Musterlösung hinterlegt ist. Die Lernenden erhalten die Hälfte der Punkte, sobald ihre Map mindestens so viele Knoten enthaelt. Null bedeutet, dass diese Hälfte immer vergeben wird.';

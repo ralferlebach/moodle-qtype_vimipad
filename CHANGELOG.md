@@ -4,6 +4,34 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.0 - 2026-08-12
+
+First beta. Maturity raised from ALPHA to BETA.
+
+### Tests
+- Boundary coverage for what a response may be: oversized, malformed, wrong
+  profile, disallowed shape, unrestricted shapes, and shape-list parsing.
+- Backup and restore roundtrip proving the reference map, profile and shape
+  restriction survive a course backup into a new course.
+- A behat scenario covering a real quiz attempt showing the embedded editor.
+- The test helper now provides edit form data for the reference template, so
+  generator-created questions can exercise the scored and constrained path.
+
+## 0.1.7 - 2026-08-12
+
+### Fixed
+- Attempt responses are validated against the public ViMi Pad map policy before
+  they are accepted or graded. A forged quiz POST could previously store any
+  string that merely parsed as JSON, including documents the editor could never
+  produce and that the scorer then partly ignored.
+- Allowed node shapes are now actually applied: they constrain the embedded
+  editor and are enforced server-side. The setting was stored, backed up and
+  restored but never used, so the UI promised a restriction that did not exist.
+- Reference map uploads are validated the same way rather than only being checked
+  for parseable JSON.
+- Corrected docblocks that still described the question as manually graded with a
+  plain-text response area.
+
 ## 0.1.6 - 2026-08-10
 
 ### Added

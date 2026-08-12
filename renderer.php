@@ -91,7 +91,18 @@ class qtype_vimipad_renderer extends qtype_renderer {
         }
 
         $this->preload_editor_strings();
-        $formconfig = json_encode(\mod_vimipad\profile\profiles::form_config($profile));
+        $config = \mod_vimipad\profile\profiles::form_config($profile);
+        // Restrict the editor's palette to the shapes the question allows, so the
+        // UI matches what is_complete_response() will actually accept. The server
+        // check remains authoritative; this only avoids offering a dead choice.
+        $allowedshapes = method_exists($question, 'allowed_shapes') ? $question->allowed_shapes() : [];
+        if (!empty($allowedshapes)) {
+            $config['allowedshapes'] = array_values($allowedshapes);
+            if (isset($config['shapes']) && is_array($config['shapes'])) {
+                $config['shapes'] = array_values(array_intersect($config['shapes'], $allowedshapes));
+            }
+        }
+        $formconfig = json_encode($config);
         $this->page->requires->js_call_amd('qtype_vimipad/attempt', 'init', [
             $containerid, $inputid, $profile, $readonly, $formconfig,
         ]);

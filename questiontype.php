@@ -31,13 +31,14 @@ require_once($CFG->libdir . '/questionlib.php');
  *
  * A ViMi Pad question presents the learner with an embeddable visual-map editor
  * constrained to a chosen diagram profile. The learner's map is stored as the
- * attempt response and graded manually by the teacher (teacher-in-the-loop),
- * mirroring the snapshot-based assessment model of the mod_vimipad activity.
+ * attempt response and scored automatically against the question's reference map
+ * through mod_vimipad's public scoring facade, mirroring the assessment model of
+ * the mod_vimipad activity. Teachers can still override the grade.
  *
- * This is an early stub: the option storage, edit form and manual-grading
- * response contract are in place; the interactive editor embed (a ViMi Pad
- * ServiceTransport bound to the question attempt) replaces the plain-text
- * response area in a follow-up step.
+ * The interactive editor is embedded directly in the attempt: a ViMi Pad
+ * transport bound to the question response carries the map, so what the learner
+ * submits is exactly what the editor produced. Responses are validated against
+ * the public map policy before they are accepted or graded.
  */
 class qtype_vimipad extends question_type {
     /**

@@ -74,7 +74,30 @@ class qtype_vimipad_question extends question_graded_automatically {
      * @return bool
      */
     public function is_complete_response(array $response) {
-        return !empty($response['answer']) && trim((string)$response['answer']) !== '';
+        $answer = isset($response['answer']) ? trim((string) $response['answer']) : '';
+        if ($answer === '') {
+            return false;
+        }
+        // The attempt POST is forgeable, so a response only counts once it
+        // satisfies the public ViMi Pad map policy: within size and element
+        // limits, structurally sound, in this question's profile, and using only
+        // the shapes the question permits. Anything else is not a map this
+        // question can store or grade.
+        return \mod_vimipad\api\value::is_valid($answer, $this->profile ?: null, $this->allowed_shapes());
+    }
+
+    /**
+     * The node shapes this question permits, as a list.
+     *
+     * @return array The allowed shapes; empty means the profile's own set applies.
+     */
+    public function allowed_shapes(): array {
+        $raw = isset($this->allowedshapes) ? trim((string) $this->allowedshapes) : '';
+        if ($raw === '') {
+            return [];
+        }
+        $shapes = array_filter(array_map('trim', explode(',', $raw)), fn($s) => $s !== '');
+        return array_values($shapes);
     }
 
     /**
@@ -96,6 +119,11 @@ class qtype_vimipad_question extends question_graded_automatically {
     public function get_validation_error(array $response) {
         if ($this->is_complete_response($response)) {
             return '';
+        }
+        $answer = isset($response['answer']) ? trim((string) $response['answer']) : '';
+        if ($answer !== '') {
+            // Present but rejected by the map policy.
+            return get_string('invalidmap', 'qtype_vimipad');
         }
         return get_string('pleasedrawmap', 'qtype_vimipad');
     }
@@ -150,7 +178,7 @@ class qtype_vimipad_question extends question_graded_automatically {
     }
 
     /**
-     * No embedded files in the stub response area.
+     * The response carries no embedded files: it is a single serialised map.
      *
      * @param question_attempt $qa The question attempt being displayed.
      * @param question_display_options $options Display options.

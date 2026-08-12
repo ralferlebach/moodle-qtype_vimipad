@@ -28,6 +28,7 @@ $string['allowedshapes'] = 'Allowed node shapes';
 $string['allowedshapes_help'] = 'An optional comma-separated list of node shapes the learner may use. Leave empty to allow every shape the chosen diagram profile permits.';
 $string['answer'] = 'Your map';
 $string['grading'] = 'Automatic grading';
+$string['invalidmap'] = 'The submitted map is not a valid ViMi Pad map for this question.';
 $string['mapsettings'] = 'Map settings';
 $string['minnodes'] = 'Minimum nodes';
 $string['minnodes_help'] = 'Used only when no reference map is set. The learner earns half of the mark once their map contains at least this many nodes. Zero means this half is always awarded.';

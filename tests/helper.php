@@ -98,6 +98,27 @@ class qtype_vimipad_test_helper extends question_test_helper {
      *
      * @return stdClass
      */
+    /**
+     * Edit form data for a question that carries a reference map and a shape
+     * restriction, so generator-created questions can exercise the scored and
+     * constrained path (not just the bare stub).
+     *
+     * @return stdClass The form data.
+     */
+    public function get_vimipad_question_form_data_reference() {
+        $form = $this->get_vimipad_question_form_data_stub();
+        $form->name = 'ViMi Pad reference';
+        $form->allowedshapes = 'circle,rectangle';
+        $form->minnodes = 2;
+        $form->minrelations = 1;
+        return $form;
+    }
+
+    /**
+     * Edit form data for the bare stub question.
+     *
+     * @return stdClass The form data.
+     */
     public function get_vimipad_question_form_data_stub() {
         $form = new stdClass();
         $form->name = 'ViMi Pad stub';

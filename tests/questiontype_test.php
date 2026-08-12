@@ -105,13 +105,24 @@ final class questiontype_test extends \advanced_testcase {
         $this->assertSame(['answer' => PARAM_RAW], $question->get_expected_data());
         $this->assertNull($question->get_correct_response());
 
+        $valid = json_encode([
+            'profile' => 'conceptmap',
+            'nodes' => [['stableid' => 'n1', 'label' => 'Cat']],
+            'relations' => [],
+        ]);
+
         $this->assertFalse($question->is_complete_response([]));
         $this->assertFalse($question->is_complete_response(['answer' => '   ']));
-        $this->assertTrue($question->is_complete_response(['answer' => '{"nodes":[],"relations":[]}']));
+        $this->assertTrue($question->is_complete_response(['answer' => $valid]));
 
-        $this->assertTrue($question->is_gradable_response(['answer' => '{"nodes":[]}']));
+        // A response must be a real map: syntactically valid JSON that is not a
+        // ViMi Pad document is refused by the public map policy.
+        $this->assertFalse($question->is_complete_response(['answer' => '{"nodes":[{}]}']));
+        $this->assertNotEmpty($question->get_validation_error(['answer' => '{"nodes":[{}]}']));
+
+        $this->assertTrue($question->is_gradable_response(['answer' => $valid]));
         $this->assertNotEmpty($question->get_validation_error([]));
-        $this->assertSame('', $question->get_validation_error(['answer' => '{"nodes":[]}']));
+        $this->assertSame('', $question->get_validation_error(['answer' => $valid]));
 
         $this->assertTrue($question->is_same_response(
             ['answer' => '{"a":1}'],
