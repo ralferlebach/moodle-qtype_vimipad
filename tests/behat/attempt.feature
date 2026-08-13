@@ -33,7 +33,8 @@ Feature: Attempt and review a ViMi Pad question in a quiz
   Scenario: The editor is offered when a learner attempts the question
     When I am on the "Quiz 1" "mod_quiz > View" page logged in as student1
     And I press "Attempt quiz"
-    Then I should see "Concept map 1"
+    # The attempt page renders the question text, not the question's bank name.
+    Then I should see "Build a concept map for the topic."
     And ".qtype_vimipad_editor" "css_element" should exist
 
   @javascript

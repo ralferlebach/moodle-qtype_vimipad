@@ -4,6 +4,16 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.6 - 2026-08-13
+
+### Fixed
+- The backup/restore test looked for the restored question in the course context.
+  From Moodle 5.0 a question category can live in a question bank module inside
+  the course, so the category context is no longer the course context and the
+  test found nothing. It now matches the whole context subtree.
+- The attempt scenario asserted the question's bank name, which an attempt page
+  does not show; it now asserts the question text.
+
 ## 0.2.5 - 2026-08-12
 
 ### Fixed

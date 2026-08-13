@@ -94,7 +94,10 @@ final class backup_restore_test extends \advanced_testcase {
         $rc->execute_plan();
         $rc->destroy();
 
-        // The restored question carries the same options.
+        // The restored question carries the same options. Match on the context
+        // tree rather than the course context itself: from Moodle 5.0 a question
+        // category can live in a question bank module inside the course, so the
+        // category context is no longer the course context.
         $restoredcontext = \context_course::instance($newcourseid);
         $sql = "SELECT o.*
                   FROM {qtype_vimipad_options} o
@@ -102,8 +105,12 @@ final class backup_restore_test extends \advanced_testcase {
                   JOIN {question_versions} qv ON qv.questionid = q.id
                   JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
                   JOIN {question_categories} qc ON qc.id = qbe.questioncategoryid
-                 WHERE qc.contextid = :contextid";
-        $options = $DB->get_records_sql($sql, ['contextid' => $restoredcontext->id]);
+                  JOIN {context} ctx ON ctx.id = qc.contextid
+                 WHERE ctx.id = :contextid OR " . $DB->sql_like('ctx.path', ':path');
+        $options = $DB->get_records_sql($sql, [
+            'contextid' => $restoredcontext->id,
+            'path' => $restoredcontext->path . '/%',
+        ]);
 
         $this->assertCount(1, $options);
         $restored = reset($options);
