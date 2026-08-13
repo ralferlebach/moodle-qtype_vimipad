@@ -4,6 +4,34 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses plain
 incremental release numbers.
 
+## 0.2.5 - 2026-08-12
+
+### Fixed
+- Added the missing CamelCaseNamespace exclusion to phpmd.xml.
+- validation() delegates the reference check to reference_error(); the helper it
+  was already calling had not actually been added, which would have been a fatal
+  error the linters do not catch.
+
+### Changed
+- The AMD target can refresh the browserslist database with
+  BROWSERSLIST_UPDATE=1 (off by default).
+
+## 0.2.4 - 2026-08-12
+
+### Fixed
+- Allowed shapes were a free-text field carrying a vocabulary the editor does not
+  use. They are now a multiselect built from the parent plugin's real shape set,
+  validated against the chosen profile, so the browser and the server can no
+  longer disagree about what the question permits.
+- An existing reference map is revalidated when the profile or the shape
+  restriction changes. Previously only a newly uploaded file was checked, so a
+  teacher could switch the profile and leave a reference behind that learners'
+  answers would be scored against despite being a different diagram type.
+- Reference uploads are bounded before the file is read: the picker carries a
+  maxbytes limit and the size is checked ahead of get_content(), since a draft
+  area can be manipulated independently of the form.
+- Removed the unused stubhint string left over from the preview version.
+
 ## 0.2.3 - 2026-08-12
 
 ### Changed

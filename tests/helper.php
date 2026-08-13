@@ -108,7 +108,7 @@ class qtype_vimipad_test_helper extends question_test_helper {
     public function get_vimipad_question_form_data_reference() {
         $form = $this->get_vimipad_question_form_data_stub();
         $form->name = 'ViMi Pad reference';
-        $form->allowedshapes = 'circle,rectangle';
+        $form->allowedshapes = 'rect,ellipse';
         $form->minnodes = 2;
         $form->minrelations = 1;
         return $form;

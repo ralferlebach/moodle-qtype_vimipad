@@ -65,7 +65,7 @@ final class backup_restore_test extends \advanced_testcase {
         ]);
         $question = $generator->create_question('vimipad', 'reference', ['category' => $category->id]);
         $DB->set_field('qtype_vimipad_options', 'referencemap', $referencemap, ['questionid' => $question->id]);
-        $DB->set_field('qtype_vimipad_options', 'allowedshapes', 'circle,rectangle', ['questionid' => $question->id]);
+        $DB->set_field('qtype_vimipad_options', 'allowedshapes', 'rect,ellipse', ['questionid' => $question->id]);
         $DB->set_field('qtype_vimipad_options', 'profile', 'conceptmap', ['questionid' => $question->id]);
 
         // Back the course up and restore it into a new one.
@@ -108,7 +108,7 @@ final class backup_restore_test extends \advanced_testcase {
         $this->assertCount(1, $options);
         $restored = reset($options);
         $this->assertSame($referencemap, $restored->referencemap);
-        $this->assertSame('circle,rectangle', $restored->allowedshapes);
+        $this->assertSame('rect,ellipse', $restored->allowedshapes);
         $this->assertSame('conceptmap', $restored->profile);
     }
 }

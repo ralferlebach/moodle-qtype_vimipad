@@ -108,8 +108,11 @@ class qtype_vimipad extends question_type {
         if (empty($formdata->profile)) {
             $formdata->profile = 'conceptmap';
         }
+        // The form posts a multiselect; the option column stores a plain list.
         if (!isset($formdata->allowedshapes)) {
             $formdata->allowedshapes = '';
+        } else if (is_array($formdata->allowedshapes)) {
+            $formdata->allowedshapes = implode(',', array_map('strval', $formdata->allowedshapes));
         }
         // Preserve any stored reference map so an edit without a new upload keeps it.
         $existing = '';
@@ -156,6 +159,12 @@ class qtype_vimipad extends question_type {
         );
         $file = reset($files);
         if (!$file) {
+            return null;
+        }
+        // Check the size before reading: a draft area can be manipulated
+        // independently of the form, so the picker's limit is not sufficient on
+        // its own and get_content() would pull the whole file into memory first.
+        if ($file->get_filesize() > \mod_vimipad\api\value::MAX_BYTES) {
             return null;
         }
         return $file->get_content();

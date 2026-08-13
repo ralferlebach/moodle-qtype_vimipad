@@ -104,33 +104,81 @@ final class response_policy_test extends \advanced_testcase {
 
     /**
      * A shape the question does not permit is refused, and a permitted one is
-     * accepted. This is the restriction the edit form promises.
+     * accepted. The shape lives in metadatajson, in the vocabulary the editor
+     * actually produces; `type` is the semantic node type and is never a shape.
      *
      * @return void
      */
     public function test_disallowed_shape_is_refused(): void {
         $this->resetAfterTest();
-        $question = $this->question('conceptmap', 'circle,rectangle');
+        $question = $this->question('conceptmap', 'rect,roundrect');
 
-        $bad = $this->map([['stableid' => 'n1', 'label' => 'One', 'shape' => 'diamond']]);
-        $good = $this->map([['stableid' => 'n1', 'label' => 'One', 'shape' => 'circle']]);
+        $bad = $this->map([[
+            'stableid' => 'n1',
+            'label' => 'One',
+            'type' => 'concept',
+            'metadatajson' => '{"shape":"ellipse"}',
+        ]]);
+        $good = $this->map([[
+            'stableid' => 'n1',
+            'label' => 'One',
+            'type' => 'concept',
+            'metadatajson' => '{"shape":"rect"}',
+        ]]);
 
         $this->assertFalse($question->is_complete_response(['answer' => $bad]));
         $this->assertTrue($question->is_complete_response(['answer' => $good]));
     }
 
     /**
-     * With no shape restriction configured, any shape is accepted.
+     * A node type must not be mistaken for a shape: a normal concept node with
+     * no shape metadata is accepted even when the question restricts shapes.
      *
      * @return void
      */
-    public function test_unrestricted_shapes_accept_anything(): void {
+    public function test_node_type_is_not_a_shape(): void {
+        $this->resetAfterTest();
+        $question = $this->question('conceptmap', 'rect');
+
+        $map = $this->map([['stableid' => 'n1', 'label' => 'One', 'type' => 'concept']]);
+
+        $this->assertTrue($question->is_complete_response(['answer' => $map]));
+    }
+
+    /**
+     * With no shape restriction configured, any shape the profile allows is
+     * accepted.
+     *
+     * @return void
+     */
+    public function test_unrestricted_shapes_accept_profile_shapes(): void {
         $this->resetAfterTest();
         $question = $this->question('conceptmap', '');
-        $map = $this->map([['stableid' => 'n1', 'label' => 'One', 'shape' => 'diamond']]);
+        $map = $this->map([[
+            'stableid' => 'n1',
+            'label' => 'One',
+            'metadatajson' => '{"shape":"ellipse"}',
+        ]]);
 
         $this->assertSame([], $question->allowed_shapes());
         $this->assertTrue($question->is_complete_response(['answer' => $map]));
+    }
+
+    /**
+     * A shape no profile defines is refused even without a restriction.
+     *
+     * @return void
+     */
+    public function test_unknown_shape_is_refused(): void {
+        $this->resetAfterTest();
+        $question = $this->question('conceptmap', '');
+        $map = $this->map([[
+            'stableid' => 'n1',
+            'label' => 'One',
+            'metadatajson' => '{"shape":"triangle"}',
+        ]]);
+
+        $this->assertFalse($question->is_complete_response(['answer' => $map]));
     }
 
     /**
@@ -140,8 +188,8 @@ final class response_policy_test extends \advanced_testcase {
      */
     public function test_shape_list_parsing(): void {
         $this->resetAfterTest();
-        $question = $this->question('conceptmap', ' circle , , rectangle ');
+        $question = $this->question('conceptmap', ' rect , , ellipse ');
 
-        $this->assertSame(['circle', 'rectangle'], $question->allowed_shapes());
+        $this->assertSame(['rect', 'ellipse'], $question->allowed_shapes());
     }
 }
