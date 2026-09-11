@@ -105,13 +105,24 @@ final class questiontype_test extends \advanced_testcase {
         $this->assertSame(['answer' => PARAM_RAW], $question->get_expected_data());
         $this->assertNull($question->get_correct_response());
 
+        $valid = json_encode([
+            'profile' => 'conceptmap',
+            'nodes' => [['stableid' => 'n1', 'label' => 'Cat']],
+            'relations' => [],
+        ]);
+
         $this->assertFalse($question->is_complete_response([]));
         $this->assertFalse($question->is_complete_response(['answer' => '   ']));
-        $this->assertTrue($question->is_complete_response(['answer' => '{"nodes":[],"relations":[]}']));
+        $this->assertTrue($question->is_complete_response(['answer' => $valid]));
 
-        $this->assertTrue($question->is_gradable_response(['answer' => '{"nodes":[]}']));
+        // A response must be a real map: syntactically valid JSON that is not a
+        // ViMi Pad document is refused by the public map policy.
+        $this->assertFalse($question->is_complete_response(['answer' => '{"nodes":[{}]}']));
+        $this->assertNotEmpty($question->get_validation_error(['answer' => '{"nodes":[{}]}']));
+
+        $this->assertTrue($question->is_gradable_response(['answer' => $valid]));
         $this->assertNotEmpty($question->get_validation_error([]));
-        $this->assertSame('', $question->get_validation_error(['answer' => '{"nodes":[]}']));
+        $this->assertSame('', $question->get_validation_error(['answer' => $valid]));
 
         $this->assertTrue($question->is_same_response(
             ['answer' => '{"a":1}'],
@@ -129,23 +140,31 @@ final class questiontype_test extends \advanced_testcase {
      * @return void
      */
     public function test_grade_response_reference_mode(): void {
-        $reference = json_encode(['nodes' => [
-            ['id' => 'a', 'label' => 'Water'],
-            ['id' => 'b', 'label' => 'Ice'],
-        ], 'relations' => []]);
+        $this->resetAfterTest();
+        $reference = json_encode(['profile' => 'conceptmap', 'nodes' => [
+            ['stableid' => 'a', 'label' => 'Water'],
+            ['stableid' => 'b', 'label' => 'Ice'],
+        ], 'relations' => [
+            ['sourceid' => 'a', 'targetid' => 'b', 'label' => 'freezes to'],
+        ]]);
 
         $question = new \qtype_vimipad_question();
         $question->referencemap = $reference;
         $question->minnodes = 0;
         $question->minrelations = 0;
 
+        // Identical map -> full mark, graded right (delegated to the facade).
         [$fraction, $state] = $question->grade_response(['answer' => $reference]);
-        $this->assertSame(1.0, $fraction);
+        $this->assertEqualsWithDelta(1.0, $fraction, 0.0001);
         $this->assertEquals(\question_state::$gradedright, $state);
 
-        $partial = json_encode(['nodes' => [['id' => 'a', 'label' => 'Water']], 'relations' => []]);
+        // A partial map scores strictly between zero and full.
+        $partial = json_encode(['profile' => 'conceptmap', 'nodes' => [
+            ['stableid' => 'a', 'label' => 'Water'],
+        ], 'relations' => []]);
         [$fraction2] = $question->grade_response(['answer' => $partial]);
-        $this->assertEqualsWithDelta(0.5, $fraction2, 0.0001);
+        $this->assertGreaterThan(0.0, $fraction2);
+        $this->assertLessThan(1.0, $fraction2);
     }
 
     /**
@@ -188,5 +207,35 @@ final class questiontype_test extends \advanced_testcase {
         $this->assertStringContainsString('1', $summary);
 
         $this->assertNull($question->summarise_response([]));
+    }
+
+    /**
+     * reference_from_draft reads the content of an uploaded JSON file.
+     *
+     * @return void
+     */
+    public function test_reference_from_draft(): void {
+        global $USER;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Empty draft -> null.
+        $this->assertNull(\qtype_vimipad::reference_from_draft(0));
+
+        // Create a draft file and confirm its content is returned.
+        $draftid = file_get_unused_draft_itemid();
+        $usercontext = \context_user::instance($USER->id);
+        $fs = get_file_storage();
+        $json = '{"nodes":[{"id":"n1","label":"Water"}],"relations":[]}';
+        $fs->create_file_from_string([
+            'contextid' => $usercontext->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftid,
+            'filepath' => '/',
+            'filename' => 'reference.json',
+        ], $json);
+
+        $this->assertSame($json, \qtype_vimipad::reference_from_draft($draftid));
     }
 }

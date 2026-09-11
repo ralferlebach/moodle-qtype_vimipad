@@ -19,7 +19,10 @@ namespace qtype_vimipad;
 use qtype_vimipad\local\scorer;
 
 /**
- * Unit tests for the ViMi Pad automatic structural scorer.
+ * Unit tests for the ViMi Pad question grading logic.
+ *
+ * Reference grading is delegated to the mod_vimipad public scoring facade, so
+ * the reference-mode tests exercise the real activity scorer end to end.
  *
  * @package    qtype_vimipad
  * @copyright  2026 Ralf Erlebach
@@ -28,109 +31,87 @@ use qtype_vimipad\local\scorer;
  */
 final class scorer_test extends \advanced_testcase {
     /**
-     * Build a serialised map from simple node labels and relation triples.
+     * Build a serialised snapshot map from concept labels and relation triples.
      *
-     * @param string[] $nodes Node labels.
-     * @param array $relations Source/label/target triples.
-     * @return string JSON map.
+     * @param array $concepts Concept labels.
+     * @param array $relations Triples: each [sourcelabel, relationlabel, targetlabel].
+     * @return string JSON snapshot.
      */
-    private function map(array $nodes, array $relations = []): string {
-        $n = [];
+    private function map(array $concepts, array $relations = []): string {
         $ids = [];
-        foreach ($nodes as $i => $label) {
+        $nodes = [];
+        foreach ($concepts as $i => $label) {
             $id = 'n' . $i;
             $ids[$label] = $id;
-            $n[] = ['id' => $id, 'label' => $label];
+            $nodes[] = ['stableid' => $id, 'label' => $label];
         }
-        $r = [];
+        $rels = [];
         foreach ($relations as $rel) {
             [$source, $label, $target] = $rel;
-            $r[] = [
-                'source' => $ids[$source] ?? $source,
+            $rels[] = [
+                'sourceid' => $ids[$source] ?? $source,
+                'targetid' => $ids[$target] ?? $target,
                 'label' => $label,
-                'target' => $ids[$target] ?? $target,
             ];
         }
-        return json_encode(['nodes' => $n, 'relations' => $r]);
+        return json_encode(['profile' => 'conceptmap', 'nodes' => $nodes, 'relations' => $rels]);
     }
 
     /**
-     * An empty or malformed response scores zero in reference mode.
+     * Reference grading delegates to the facade: an identical map scores full.
      *
      * @return void
      */
-    public function test_empty_response_reference_mode(): void {
-        $reference = $this->map(['Water', 'Ice'], [['Water', 'freezes to', 'Ice']]);
-        $this->assertSame(0.0, scorer::score('', $reference, 0, 0));
+    public function test_reference_full_match(): void {
+        $this->resetAfterTest();
+        $map = $this->map(['Water', 'Ice'], [['Water', 'freezes to', 'Ice']]);
+        $this->assertEqualsWithDelta(1.0, scorer::score($map, $map, 0, 0), 0.0001);
+    }
+
+    /**
+     * A weaker response scores below a perfect one, but above zero.
+     *
+     * @return void
+     */
+    public function test_reference_partial_match(): void {
+        $this->resetAfterTest();
+        $reference = $this->map(
+            ['Water', 'Ice', 'Steam'],
+            [['Water', 'freezes to', 'Ice'], ['Water', 'boils to', 'Steam']]
+        );
+        $weak = $this->map(['Water', 'Ice'], [['Water', 'freezes to', 'Ice']]);
+
+        $partial = scorer::score($weak, $reference, 0, 0);
+        $this->assertGreaterThan(0.0, $partial);
+        $this->assertLessThan(1.0, $partial);
+    }
+
+    /**
+     * An unusable response in reference mode scores zero, not an error.
+     *
+     * @return void
+     */
+    public function test_reference_invalid_response(): void {
+        $this->resetAfterTest();
+        $reference = $this->map(['Water', 'Ice']);
         $this->assertSame(0.0, scorer::score('not json', $reference, 0, 0));
-        $this->assertSame(0.0, scorer::score(null, $reference, 0, 0));
     }
 
     /**
-     * A response identical to the reference scores a full mark.
-     *
-     * @return void
-     */
-    public function test_full_match_reference_mode(): void {
-        $reference = $this->map(['Water', 'Ice'], [['Water', 'freezes to', 'Ice']]);
-        $this->assertSame(1.0, scorer::score($reference, $reference, 0, 0));
-    }
-
-    /**
-     * Partial recall against the reference yields a proportional fraction.
-     *
-     * Reference has 2 nodes + 1 relation = 3 elements; the response reproduces
-     * both nodes but not the relation, so 2/3.
-     *
-     * @return void
-     */
-    public function test_partial_match_reference_mode(): void {
-        $reference = $this->map(['Water', 'Ice'], [['Water', 'freezes to', 'Ice']]);
-        $response = $this->map(['Water', 'Ice']);
-        $this->assertEqualsWithDelta(2 / 3, scorer::score($response, $reference, 0, 0), 0.0001);
-    }
-
-    /**
-     * Matching ignores case and surrounding whitespace.
-     *
-     * @return void
-     */
-    public function test_matching_is_case_and_whitespace_insensitive(): void {
-        $reference = $this->map(['Water Cycle'], []);
-        $response = $this->map(['  water   cycle '], []);
-        $this->assertSame(1.0, scorer::score($response, $reference, 0, 0));
-    }
-
-    /**
-     * Extra elements in the response do not reduce the recall-based score.
-     *
-     * @return void
-     */
-    public function test_extra_response_elements_do_not_penalise(): void {
-        $reference = $this->map(['A'], []);
-        $response = $this->map(['A', 'B', 'C'], [['A', 'x', 'B']]);
-        $this->assertSame(1.0, scorer::score($response, $reference, 0, 0));
-    }
-
-    /**
-     * Structural mode awards half per satisfied minimum.
+     * Structural mode awards half per satisfied minimum when no reference is set.
      *
      * @return void
      */
     public function test_structural_mode_halves(): void {
         $response = $this->map(['A', 'B'], [['A', 'r', 'B']]);
-        // Both minimums met -> full.
         $this->assertSame(1.0, scorer::score($response, '', 2, 1));
-        // Node minimum met, relation minimum not -> half.
         $this->assertSame(0.5, scorer::score($response, '', 2, 5));
-        // Neither met -> zero.
         $this->assertSame(0.0, scorer::score($response, '', 5, 5));
-        // Zero minimums -> full for any complete map.
         $this->assertSame(1.0, scorer::score($response, '', 0, 0));
     }
 
     /**
-     * Structural mode is used when the reference argument is null or empty.
+     * A null or empty reference falls back to structural grading.
      *
      * @return void
      */
@@ -141,26 +122,18 @@ final class scorer_test extends \advanced_testcase {
     }
 
     /**
-     * Normalisation de-duplicates and resolves relation endpoints to labels.
+     * counts() reports node and relation counts from the serialised map.
      *
      * @return void
      */
-    public function test_normalise_resolves_ids_and_dedupes(): void {
-        $json = json_encode([
-            'nodes' => [
-                ['id' => 'n1', 'label' => 'Alpha'],
-                ['id' => 'n2', 'label' => 'Beta'],
-                ['id' => 'n3', 'label' => 'Alpha'],
-            ],
-            'relations' => [
-                ['source' => 'n1', 'label' => 'links', 'target' => 'n2'],
-                ['source' => 'n1', 'label' => 'links', 'target' => 'n2'],
-            ],
-        ]);
-        $normalised = scorer::normalise_map($json);
-        $this->assertSame(['alpha', 'beta'], $normalised['nodes']);
-        $this->assertCount(1, $normalised['relations']);
-        $this->assertStringContainsString('alpha', $normalised['relations'][0]);
-        $this->assertStringContainsString('beta', $normalised['relations'][0]);
+    public function test_counts(): void {
+        $map = $this->map(['A', 'B', 'C'], [['A', 'r', 'B']]);
+        $counts = scorer::counts($map);
+        $this->assertSame(3, $counts['nodes']);
+        $this->assertSame(1, $counts['relations']);
+
+        $empty = scorer::counts('not json');
+        $this->assertSame(0, $empty['nodes']);
+        $this->assertSame(0, $empty['relations']);
     }
 }

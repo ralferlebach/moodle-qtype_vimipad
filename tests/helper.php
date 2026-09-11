@@ -35,7 +35,7 @@ class qtype_vimipad_test_helper extends question_test_helper {
      * @return string[]
      */
     public function get_test_questions() {
-        return ['stub'];
+        return ['stub', 'structural', 'reference'];
     }
 
     /**
@@ -60,9 +60,64 @@ class qtype_vimipad_test_helper extends question_test_helper {
     }
 
     /**
+     * Make a ViMi Pad question graded against structural minimums (2 nodes, 1 relation).
+     *
+     * @return qtype_vimipad_question
+     */
+    public function make_vimipad_question_structural() {
+        $q = $this->make_vimipad_question_stub();
+        $q->name = 'ViMi Pad structural';
+        $q->minnodes = 2;
+        $q->minrelations = 1;
+        return $q;
+    }
+
+    /**
+     * Make a ViMi Pad question graded against a reference map.
+     *
+     * @return qtype_vimipad_question
+     */
+    public function make_vimipad_question_reference() {
+        $q = $this->make_vimipad_question_stub();
+        $q->name = 'ViMi Pad reference';
+        $q->referencemap = json_encode([
+            'profile' => 'conceptmap',
+            'nodes' => [
+                ['stableid' => 'a', 'label' => 'Water'],
+                ['stableid' => 'b', 'label' => 'Ice'],
+            ],
+            'relations' => [
+                ['sourceid' => 'a', 'targetid' => 'b', 'label' => 'freezes to'],
+            ],
+        ]);
+        return $q;
+    }
+
+    /**
      * Return the raw form data for creating a ViMi Pad question.
      *
      * @return stdClass
+     */
+    /**
+     * Edit form data for a question that carries a reference map and a shape
+     * restriction, so generator-created questions can exercise the scored and
+     * constrained path (not just the bare stub).
+     *
+     * @return stdClass The form data.
+     */
+    public function get_vimipad_question_form_data_reference() {
+        $form = $this->get_vimipad_question_form_data_stub();
+        $form->name = 'ViMi Pad reference';
+        $form->allowedshapes = 'rect,ellipse';
+        $form->minnodes = 2;
+        $form->minrelations = 1;
+        return $form;
+    }
+
+    /**
+     * Edit form data for the bare stub question.
+     *
+     * @return stdClass The form data.
      */
     public function get_vimipad_question_form_data_stub() {
         $form = new stdClass();
@@ -72,7 +127,6 @@ class qtype_vimipad_test_helper extends question_test_helper {
         $form->generalfeedback = ['text' => '', 'format' => FORMAT_HTML];
         $form->profile = 'conceptmap';
         $form->allowedshapes = '';
-        $form->referencemap = '';
         $form->minnodes = 0;
         $form->minrelations = 0;
         return $form;

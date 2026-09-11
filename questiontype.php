@@ -31,13 +31,14 @@ require_once($CFG->libdir . '/questionlib.php');
  *
  * A ViMi Pad question presents the learner with an embeddable visual-map editor
  * constrained to a chosen diagram profile. The learner's map is stored as the
- * attempt response and graded manually by the teacher (teacher-in-the-loop),
- * mirroring the snapshot-based assessment model of the mod_vimipad activity.
+ * attempt response and scored automatically against the question's reference map
+ * through mod_vimipad's public scoring facade, mirroring the assessment model of
+ * the mod_vimipad activity. Teachers can still override the grade.
  *
- * This is an early stub: the option storage, edit form and manual-grading
- * response contract are in place; the interactive editor embed (a ViMi Pad
- * ServiceTransport bound to the question attempt) replaces the plain-text
- * response area in a follow-up step.
+ * The interactive editor is embedded directly in the attempt: a ViMi Pad
+ * transport bound to the question response carries the map, so what the learner
+ * submits is exactly what the editor produced. Responses are validated against
+ * the public map policy before they are accepted or graded.
  */
 class qtype_vimipad extends question_type {
     /**
@@ -103,17 +104,69 @@ class qtype_vimipad extends question_type {
      * @return object|null
      */
     public function save_question_options($formdata) {
+        global $DB;
         if (empty($formdata->profile)) {
             $formdata->profile = 'conceptmap';
         }
+        // The form posts a multiselect; the option column stores a plain list.
         if (!isset($formdata->allowedshapes)) {
             $formdata->allowedshapes = '';
+        } else if (is_array($formdata->allowedshapes)) {
+            $formdata->allowedshapes = implode(',', array_map('strval', $formdata->allowedshapes));
         }
-        if (!isset($formdata->referencemap)) {
-            $formdata->referencemap = '';
+        // Preserve any stored reference map so an edit without a new upload keeps it.
+        $existing = '';
+        if (!empty($formdata->id)) {
+            $existing = (string)$DB->get_field(
+                'qtype_vimipad_options',
+                'referencemap',
+                ['questionid' => $formdata->id]
+            );
+        }
+        $formdata->referencemap = $existing;
+        // A freshly uploaded ViMi Pad JSON export replaces the stored reference map.
+        if (!empty($formdata->referencemapfile)) {
+            $uploaded = self::reference_from_draft((int)$formdata->referencemapfile);
+            if ($uploaded !== null && trim($uploaded) !== '') {
+                $formdata->referencemap = $uploaded;
+            }
         }
         $formdata->minnodes = max(0, (int)($formdata->minnodes ?? 0));
         $formdata->minrelations = max(0, (int)($formdata->minrelations ?? 0));
         return parent::save_question_options($formdata);
+    }
+
+    /**
+     * Read the content of a JSON file uploaded via the reference-map filepicker.
+     *
+     * @param int $draftitemid The draft area item id produced by the filepicker.
+     * @return string|null The uploaded file content, or null when nothing was uploaded.
+     */
+    public static function reference_from_draft(int $draftitemid): ?string {
+        global $USER;
+        if (empty($draftitemid)) {
+            return null;
+        }
+        $usercontext = context_user::instance($USER->id);
+        $fs = get_file_storage();
+        $files = $fs->get_area_files(
+            $usercontext->id,
+            'user',
+            'draft',
+            $draftitemid,
+            'id DESC',
+            false
+        );
+        $file = reset($files);
+        if (!$file) {
+            return null;
+        }
+        // Check the size before reading: a draft area can be manipulated
+        // independently of the form, so the picker's limit is not sufficient on
+        // its own and get_content() would pull the whole file into memory first.
+        if ($file->get_filesize() > \mod_vimipad\api\value::MAX_BYTES) {
+            return null;
+        }
+        return $file->get_content();
     }
 }
