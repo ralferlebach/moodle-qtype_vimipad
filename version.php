@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'qtype_vimipad';
-$plugin->version      = 2026081216;
+$plugin->version      = 2026091100;
 $plugin->requires     = 2024100700;   // Moodle 4.5.0 — hard minimum, mirrors mod_vimipad.
 $plugin->supported    = [405, 502];   // Tested on Moodle 4.5–5.2, like the activity it depends on.
-$plugin->maturity     = MATURITY_BETA;
-$plugin->release      = '0.2.6';
+$plugin->maturity     = MATURITY_RC;
+$plugin->release      = '1.0.0-RC1';
 
 // This question type is an embedding of the ViMi Pad editor. It reuses the
 // public API (\mod_vimipad\api\*, \mod_vimipad\profile\*) and the embeddable
@@ -38,5 +38,5 @@ $plugin->release      = '0.2.6';
 // dependency is therefore declared, at the build that introduced the public
 // map-value API this question type validates responses and reference maps with.
 $plugin->dependencies = [
-    'mod_vimipad' => 2026081208,
+    'mod_vimipad' => 2026091100,
 ];
