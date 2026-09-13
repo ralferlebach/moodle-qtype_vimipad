@@ -109,10 +109,10 @@ $DB->insert_record('qtype_vimipad_options', (object) [
 
 // Quiz containing the question.
 $module = $DB->get_record('modules', ['name' => 'quiz'], '*', MUST_EXIST);
-// mod_quiz has NOT NULL columns without database defaults (password, subnet,
-// the review-option bitmasks and the timing fields). add_moduleinfo() does not
-// fill them in, so they must be supplied explicitly or the insert aborts the
-// transaction with a not-null violation.
+// The quiz module has NOT NULL columns without database defaults (password,
+// subnet, the review-option bitmasks and the timing fields). add_moduleinfo()
+// does not fill them in, so they must be supplied explicitly or the insert
+// aborts the transaction with a not-null violation.
 $created = add_moduleinfo((object) [
     'modulename' => 'quiz', 'module' => $module->id, 'course' => $course->id, 'section' => 1,
     'visible' => 1, 'name' => 'Water quiz', 'intro' => '', 'introformat' => FORMAT_HTML,
@@ -120,7 +120,11 @@ $created = add_moduleinfo((object) [
     'timeopen' => 0, 'timeclose' => 0, 'timelimit' => 0, 'overduehandling' => 'autosubmit',
     'graceperiod' => 0, 'grademethod' => 1, 'decimalpoints' => 2, 'questiondecimalpoints' => -1,
     'questionsperpage' => 1, 'navmethod' => 'free', 'shuffleanswers' => 1,
-    'sumgrades' => 0, 'password' => '', 'subnet' => '', 'browsersecurity' => '-',
+    // quiz_add_instance() overwrites password from the form field quizpassword
+    // (lib.php: $quiz->password = $quiz->quizpassword), so setting 'password'
+    // alone leaves the column null and the insert fails. Supply both.
+    'sumgrades' => 0, 'quizpassword' => '', 'password' => '', 'subnet' => '',
+    'browsersecurity' => '-',
     'delay1' => 0, 'delay2' => 0, 'showuserpicture' => 0, 'showblocks' => 0,
     'completionattemptsexhausted' => 0, 'completionminattempts' => 0, 'allowofflineattempts' => 0,
     'reviewattempt' => 69904, 'reviewcorrectness' => 4368, 'reviewmarks' => 4368,
