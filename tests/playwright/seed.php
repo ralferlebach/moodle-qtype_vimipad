@@ -133,7 +133,11 @@ $created = add_moduleinfo((object) [
 ], $course);
 $quizcmid = (int) $created->coursemodule;
 $quiz = $DB->get_record('quiz', ['id' => $created->instance], '*', MUST_EXIST);
-quiz_add_quiz_question($question->id, $quiz);
+quiz_add_quiz_question($question->id, $quiz, 0, 1);
+// The slot's mark does not reach quiz.sumgrades on its own. Without this the
+// quiz is "graded out of 100 but no question has a grade" and no attempt can
+// be started at all.
+quiz_update_sumgrades($quiz);
 
 $quizpath = '/mod/quiz/view.php?id=' . $quizcmid;
 

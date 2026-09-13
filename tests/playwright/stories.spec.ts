@@ -53,11 +53,16 @@ test.describe('qtype_vimipad - Student stories', () => {
         await expect(page.locator('.qtype_vimipad_editor').first()).toBeVisible({timeout: 30_000});
     });
 
-    // S2: a student can reach the quiz and start where they can draw an answer.
+    // S2: a student can continue an attempt and still see the editor.
     test('S2 - a student reaches the attempt page', async ({page}) => {
         await login(page, env.baseURL, env.student);
-        await page.goto(`${env.baseURL}/mod/quiz/startattempt.php?cmid=${env.quizCmid}&lang=en`);
-        // startattempt redirects into attempt.php; the editor is present there.
+        // startattempt.php must not be requested directly: it requires a sesskey
+        // and answers a bare GET with "A required parameter (sesskey) was
+        // missing". Go through the quiz page and use its button, exactly as a
+        // student would.
+        await page.goto(`${env.baseURL}${env.quizPath}&lang=en`);
+        await page.getByRole('button', {name: /Attempt quiz( now)?|Re-attempt|Continue your attempt/i})
+            .first().click();
         await expect(page.locator('.qtype_vimipad_editor').first()).toBeVisible({timeout: 30_000});
     });
 });
