@@ -46,7 +46,7 @@ test.describe('qtype_vimipad - Student stories', () => {
     test('S1 - the editor is offered on the attempt', async ({page}) => {
         await login(page, env.baseURL, env.student);
         await page.goto(`${env.baseURL}${env.quizPath}&lang=en`);
-        await page.getByRole('button', {name: /Attempt quiz|Re-attempt|Continue/i}).first().click();
+        await page.getByRole('button', {name: /Attempt quiz( now)?|Re-attempt|Continue your attempt/i}).first().click();
 
         // The attempt page renders the question text and the embedded editor.
         await expect(page.getByText('Map how water changes state.').first()).toBeVisible({timeout: 20_000});
