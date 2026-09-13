@@ -77,12 +77,12 @@ $teacher = qtype_seed_user('vqt_t', 'Tay', 'Teacher', 'Vimi!qt_T1', $course->id,
 $student = qtype_seed_user('vqt_s', 'Sam', 'Student', 'Vimi!qt_S1', $course->id, 'student');
 $coursecontext = context_course::instance($course->id);
 
-// Question category + a ViMi Pad question with a reference map.
-$category = (object) [
-    'name' => 'Story questions', 'contextid' => $coursecontext->id, 'info' => '', 'infoformat' => FORMAT_HTML,
-    'stamp' => make_unique_id_code(), 'parent' => 0, 'sortorder' => 999,
-];
-$category->id = $DB->insert_record('question_categories', $category);
+// Put the question in the course's DEFAULT question category. question/edit.php
+// opens the default category, so a question filed in a custom category would not
+// appear on the question bank page a teacher lands on.
+require_once($CFG->dirroot . '/question/editlib.php');
+$contexts = new core_question\local\bank\question_edit_contexts($coursecontext);
+$category = question_make_default_categories($contexts->all());
 
 $referencemap = json_encode([
     'profile' => 'conceptmap',
@@ -120,7 +120,7 @@ $created = add_moduleinfo((object) [
     'timeopen' => 0, 'timeclose' => 0, 'timelimit' => 0, 'overduehandling' => 'autosubmit',
     'graceperiod' => 0, 'grademethod' => 1, 'decimalpoints' => 2, 'questiondecimalpoints' => -1,
     'questionsperpage' => 1, 'navmethod' => 'free', 'shuffleanswers' => 1,
-    // quiz_add_instance() overwrites password from the form field quizpassword
+    // The quiz module overwrites password from the form field quizpassword
     // (lib.php: $quiz->password = $quiz->quizpassword), so setting 'password'
     // alone leaves the column null and the insert fails. Supply both.
     'sumgrades' => 0, 'quizpassword' => '', 'password' => '', 'subnet' => '',
