@@ -9,7 +9,12 @@ incremental release numbers.
 First release candidate. Maturity raised to MATURITY_RC.
 
 
+
 ### Added
+- PHPUnit privacy tests (tests/privacy_provider_test.php). The plugin declared a
+  privacy provider but had no test for it, so a broken reason string or a
+  mismatched provider signature would only have surfaced when an administrator
+  actually ran a data subject request.
 - Playwright user-story suite (Teacher, Student) with a seed, a workflow and a
   video recorded on every run. See tests/playwright.
 - Moodle 5.1 in development and release CI.
