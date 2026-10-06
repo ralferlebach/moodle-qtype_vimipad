@@ -5,6 +5,15 @@ All notable changes to this plugin are documented here. The format follows
 incremental release numbers.
 
 
+
+## Unreleased
+
+### Added
+- Plugin logo added as pix/qtype_vimipad-icon-color-200.png and .svg. The
+  monochrome icon now matches mod_vimipad's: pix/monologo.svg, and pix/icon.svg
+  with the same drawing, because Moodle shows a question type's "icon" - the
+  monologo fallback applies to activity modules only.
+
 ## 1.0.0 (2026-10-05)
 
 ### Changed
