@@ -19,7 +19,7 @@
  * ViMi_User_Stories.md. Requires a seeded, running site (see seed.php).
  */
 
-import {test, expect} from '@playwright/test';
+import {test, expect, Page} from '@playwright/test';
 import {readEnv, login} from './support/env';
 
 const env = readEnv();
@@ -66,3 +66,74 @@ test.describe('qtype_vimipad - Student stories', () => {
         await expect(page.locator('.qtype_vimipad_editor').first()).toBeVisible({timeout: 30_000});
     });
 });
+
+/**
+ * Start or continue the attempt and wait until the answer editor takes input.
+ *
+ * @param page The page.
+ */
+async function openAttempt(page: Page): Promise<void> {
+    await login(page, env.baseURL, env.student);
+    await page.goto(`${env.baseURL}${env.quizPath}&lang=en`);
+    await page.getByRole('button', {name: /Attempt quiz( now)?|Re-attempt|Continue your attempt/i}).first().click();
+    await expect(page.getByRole('group', {name: /Add concept/i})).toBeVisible({timeout: 30_000});
+}
+
+/**
+ * Add a concept through the editor's add form.
+ *
+ * @param page The page.
+ * @param label The concept label.
+ */
+async function addConcept(page: Page, label: string): Promise<void> {
+    const group = page.getByRole('group', {name: /Add concept/i});
+    await group.getByLabel(/Concept label/i).fill(label);
+    await group.getByRole('button', {name: /^Add$/}).click();
+}
+
+test.describe('qtype_vimipad - drawing an answer', () => {
+    // Guards the regression where the value transport minted no ids: the
+    // second concept never appeared and the answer held an empty map.
+    test('S3 - two concepts both appear and are in the answer', async ({page}) => {
+        await openAttempt(page);
+        const stamp = Date.now().toString(36);
+        const first = `Ice ${stamp}`;
+        const second = `Steam ${stamp}`;
+        await addConcept(page, first);
+        await addConcept(page, second);
+
+        const node = (label: string) => page.locator('.vimipad-canvas-node', {hasText: label}).first();
+        await expect(node(first)).toBeVisible();
+        await expect(node(second)).toBeVisible();
+
+        // The field name contains a colon (q1:1_answer), so look the input up by
+        // attribute rather than with an id selector.
+        const editorId = await page.locator('.qtype_vimipad_editor').first().getAttribute('id');
+        const valueId = editorId!.replace(/_editor$/, '_value');
+        const answer = JSON.parse(await page.locator(`[id="${valueId}"]`).inputValue());
+        const labels = answer.nodes.map((n: {label: string}) => n.label);
+        expect(labels).toEqual(expect.arrayContaining([first, second]));
+        for (const n of answer.nodes) {
+            expect(n.stableid).toMatch(/^node_[0-9a-f]{12}$/);
+        }
+    });
+
+    // Guards the regression where every drag was refused before it began.
+    test('S4 - a concept in the answer can be dragged', async ({page}) => {
+        await openAttempt(page);
+        const label = `Water ${Date.now().toString(36)}`;
+        await addConcept(page, label);
+        const target = page.locator('.vimipad-canvas-node', {hasText: label}).first();
+        await expect(target).toBeVisible();
+
+        const before = (await target.boundingBox())!;
+        await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(before.x + before.width / 2 + 160, before.y + before.height / 2 + 60, {steps: 12});
+        await page.mouse.up();
+
+        const after = (await target.boundingBox())!;
+        expect(after.x - before.x).toBeGreaterThan(80);
+    });
+});
+

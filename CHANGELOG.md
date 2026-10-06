@@ -9,6 +9,10 @@ incremental release numbers.
 ## Unreleased
 
 ### Added
+- Browser stories for drawing an answer: two concepts both appear and are in
+  the submitted answer with real ids (S3), and a concept can be dragged (S4).
+
+### Added
 - Plugin logo added as pix/qtype_vimipad-icon-color-200.png and .svg. The
   monochrome icon now matches mod_vimipad's: pix/monologo.svg, and pix/icon.svg
   with the same drawing, because Moodle shows a question type's "icon" - the
